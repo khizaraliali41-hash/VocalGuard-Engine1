@@ -16,12 +16,10 @@ public class AuthenticationService {
         // Logging the incoming data for debugging (Professional Practice)
         System.out.println("[AUTH] Captured: " + String.format("%.2f", capturedFreq) + " Hz");
         System.out.println("[AUTH] Analyzing against profile: " + profile.getUserName());
-
-        // SE Improvement: Add a small buffer (e.g., 2Hz) for background noise
-        double tolerance = 2.0; 
         
-        boolean isAuthorized = (capturedFreq >= (profile.getMinFrequency() - tolerance) && 
-                               capturedFreq <= (profile.getMaxFrequency() + tolerance));
+        // SE Improvement: Directly utilizes the self-verification logic from UserProfile
+        // Since UserProfile handles its own bounds, we invoke it cleanly here.
+        boolean isAuthorized = profile.isMatch(capturedFreq);
 
         if (isAuthorized) {
             printSuccessReport(profile.getUserName());

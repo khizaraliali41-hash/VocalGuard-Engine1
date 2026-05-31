@@ -1,56 +1,43 @@
-import java.util.Scanner;
+System.out.println("==================================================");
+        System.out.println("[BOOT] VocalGuard Engine Active & Running Live...");
+        System.out.println("[STATUS] Continuous Background Listening Engaged...");
+        System.out.println("==================================================");
 
-/**
- * Main Execution Entry Point
- * Implements biometrically secured boot sequence and command loop.
- * Managed by: Ali, Mohib, Hamid
- */
-public class Main {
-    public static void main(String[] args) {
-        // Initialization of Core Services
-        Scanner scanner = new Scanner(System.in);
-        CommandProcessor processor = new CommandProcessor();
-        AuthenticationService authService = new AuthenticationService();
-        
-        // Mock Database: Creating Ali's Profile (Name, MinFreq, MaxFreq)
-        // In a real scenario, this data comes from your registration module.
-        UserProfile aliProfile = new UserProfile("Khizar Ali Jamshed", 110.0, 150.0);
+        // Professional SE Practice: Start microphone ONCE outside the loop
+        captureService.startListening();
 
-        System.out.println("[BOOT] Initializing VocalGuard Engine...");
-        
-        // --- SIMULATING VOICE AUTHENTICATION ---
-        // Let's assume the mic captured a frequency of 125.5 Hz
-        double capturedFrequency = 125.5; 
+        while (true) {
+            // Buffer read karne ke liye chota sa delay taake data load ho sake
+            try { Thread.sleep(100); } catch (InterruptedException e) { }
 
-        if (authService.authenticate(capturedFrequency, aliProfile)) {
-            System.out.println("[SYSTEM] Status: ALL MODULES OPERATIONAL");
-            System.out.println("\nTUDO: Standby mode active. Waiting for input, Ali.");
+            byte[] audioData = captureService.captureAudio();
+            double currentFrequency = 0.0;
 
-            // Continuous Listening Loop (Only starts if Auth is successful)
-            while (true) {
-                System.out.print("\n>>> ");
-                String userInput = scanner.nextLine();
-
-                if (isTerminationCommand(userInput)) {
-                    System.out.println("[SHUTDOWN] Terminating session. Safe travels, Ali.");
-                    break;
-                }
-
-                // Process input through NLU layer
-                processor.process(userInput);
+            if (audioData != null) {
+                currentFrequency = fftService.calculateFrequency(audioData);
             }
-        } else {
-            System.err.println("[CRITICAL] Identity Verification Failed. Access Denied.");
+            
+            // Debug line ko tabhi print karein jab sach mein koi aawaz aaye (Noise threshold > 50Hz)
+            if (currentFrequency > 50.0) {
+                if (authService.authenticate(currentFrequency, myProfile)) {
+                    System.out.println("\n[🔥 HOTWORD MATCHED]: Ji Khizar, I am listening!");
+                    System.out.print("TUDO >>> ");
+                    
+                    String instruction = scanner.nextLine();
+
+                    if (instruction.toLowerCase().trim().equals("shutdown") || 
+                        instruction.toLowerCase().trim().equals("band ho jao")) {
+                        System.out.println("[SHUTDOWN] VocalGuard Engine closing safely. Allah Hafiz!");
+                        break;
+                    }
+
+                    processor.process(instruction);
+                    System.out.println("\n[SYSTEM] Returning to standby background mode...");
+                }
+            }
+            // Agar frequency 0 ya bohot kam hai, toh chup-chap loop chalta rahega, terminal ko ganda nahi karega!
         }
 
+        // Clean up resources when loop breaks
+        captureService.stopListening();
         scanner.close();
-    }
-
-    private static boolean isTerminationCommand(String input) {
-        String cmd = input.toLowerCase().trim();
-        return cmd.equals("exit") || 
-               cmd.equals("shutdown") || 
-               cmd.equals("band ho jao") || 
-               cmd.equals("khuda hafiz");
-    }
-}

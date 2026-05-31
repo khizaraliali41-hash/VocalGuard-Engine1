@@ -24,5 +24,7 @@ public class UserProfile {
     }
 
     // Getters
-    public String getUserName() { return userName; }
+    public String getUserName() { 
+        return userName; 
+    }
 }
